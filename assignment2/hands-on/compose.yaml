@@ -1,0 +1,40 @@
+services:
+  proxy:
+    build: .
+    environment:
+      LISTEN_ADDR: ":8080"
+      UPSTREAM_URL: "http://legacy:8080"
+      JWT_SECRET: "${JWT_SECRET:?JWT_SECRET must be set in .env}"
+      AUTH_USERNAME: "${AUTH_USERNAME:?AUTH_USERNAME must be set in .env}"
+      AUTH_PASSWORD: "${AUTH_PASSWORD:?AUTH_PASSWORD must be set in .env}"
+    ports:
+      - "80:8080"
+    depends_on:
+      - legacy
+    networks:
+      - edge
+      - private
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+
+  legacy:
+    image: ghcr.io/mccutchen/go-httpbin@sha256:873b4fdb27fe7cc66fa12cb9362574e1b0bf31df7ca8a71b2502988327a0b8a4
+    expose:
+      - "8080"
+    networks:
+      - private
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+
+networks:
+  edge:
+  private:
+    internal: true
